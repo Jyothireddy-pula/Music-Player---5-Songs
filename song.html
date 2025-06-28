@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Music Player - 5 Songs</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(to right, #f8a7a7 50%, #b3f0e5 50%);
+    }
+
+    .player {
+      background-color: rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 30px;
+      width: 320px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .cover {
+      width: 200px;
+      height: 200px;
+      border-radius: 20px;
+      margin: 0 auto;
+      object-fit: cover;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    h2 {
+      margin-top: 15px;
+      font-size: 20px;
+      color: #0b3c3c;
+    }
+
+    .progress-container {
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .progress {
+      flex: 1;
+      height: 8px;
+      background: #ccc;
+      border-radius: 5px;
+      margin: 0 10px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .progress-filled {
+      height: 100%;
+      background: #045c5c;
+      width: 0%;
+      border-radius: 5px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+
+    .controls button {
+      width: 45px;
+      height: 45px;
+      border: none;
+      border-radius: 50%;
+      background: #045c5c;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .controls button:hover {
+      background: #023939;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="player">
+    <img src="" class="cover" id="cover" />
+    <h2 id="title">Loading...</h2>
+    <div class="progress-container">
+      <span id="currentTime">0:00</span>
+      <div class="progress" id="progressContainer">
+        <div class="progress-filled" id="progressFilled"></div>
+      </div>
+      <span id="duration">0:00</span>
+    </div>
+    <div class="controls">
+      <button onclick="prevSong()">⏮</button>
+      <button id="playBtn" onclick="playPause()">▶</button>
+      <button onclick="nextSong()">⏭</button>
+      <button onclick="toggleMute()">🔇</button>
+    </div>
+    <audio id="audio"></audio>
+  </div>
+
+  <script>
+    const songs = [
+      {
+        title: "Soni Soni",
+        src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        cover: "https://picsum.photos/id/237/200/200"
+      },
+      {
+        title: "Perfect – Ed Sheeran",
+        src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+        cover: "https://picsum.photos/id/238/200/200"
+      },
+      {
+        title: "Let Me Love You – DJ Snake",
+        src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+        cover: "https://picsum.photos/id/239/200/200"
+      },
+      {
+        title: "Faded – Alan Walker",
+        src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+        cover: "https://picsum.photos/id/240/200/200"
+      },
+      {
+        title: "Stay – Kid LAROI & Justin Bieber",
+        src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+        cover: "https://picsum.photos/id/241/200/200"
+      }
+    ];
+
+    let currentIndex = 0;
+    const audio = document.getElementById("audio");
+    const cover = document.getElementById("cover");
+    const title = document.getElementById("title");
+    const progressFilled = document.getElementById("progressFilled");
+    const currentTimeText = document.getElementById("currentTime");
+    const durationText = document.getElementById("duration");
+    const playBtn = document.getElementById("playBtn");
+    const progressContainer = document.getElementById("progressContainer");
+
+    function loadSong(index) {
+      const song = songs[index];
+      audio.src = song.src;
+      cover.src = song.cover;
+      title.innerText = song.title;
+    }
+
+    function playPause() {
+      if (audio.paused) {
+        audio.play();
+        playBtn.textContent = "⏸";
+      } else {
+        audio.pause();
+        playBtn.textContent = "▶";
+      }
+    }
+
+    function prevSong() {
+      currentIndex = (currentIndex - 1 + songs.length) % songs.length;
+      loadSong(currentIndex);
+      audio.play();
+    }
+
+    function nextSong() {
+      currentIndex = (currentIndex + 1) % songs.length;
+      loadSong(currentIndex);
+      audio.play();
+    }
+
+    function toggleMute() {
+      audio.muted = !audio.muted;
+    }
+
+    function formatTime(seconds) {
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60);
+      return `${min}:${sec < 10 ? "0" + sec : sec}`;
+    }
+
+    audio.addEventListener("timeupdate", () => {
+      const { duration, currentTime } = audio;
+      const percent = (currentTime / duration) * 100;
+      progressFilled.style.width = percent + "%";
+      currentTimeText.innerText = formatTime(currentTime);
+      durationText.innerText = formatTime(duration || 0);
+    });
+
+    audio.addEventListener("ended", nextSong);
+
+    audio.addEventListener("play", () => playBtn.textContent = "⏸");
+    audio.addEventListener("pause", () => playBtn.textContent = "▶");
+
+    progressContainer.addEventListener("click", (e) => {
+      const width = progressContainer.clientWidth;
+      const clickX = e.offsetX;
+      const duration = audio.duration;
+      audio.currentTime = (clickX / width) * duration;
+    });
+
+    // Initial load
+    loadSong(currentIndex);
+  </script>
+</body>
+</html>
